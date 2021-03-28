@@ -1,0 +1,828 @@
+2021-03-28 07:25:56.714032: I tensorflow/stream_executor/platform/default/dso_loader.cc:49] Successfully opened dynamic library libcudart.so.11.0
+WARNING:tensorflow:From /usr/local/lib/python3.7/dist-packages/tensorflow/python/compat/v2_compat.py:96: disable_resource_variables (from tensorflow.python.ops.variable_scope) is deprecated and will be removed in a future version.
+Instructions for updating:
+non-resource variables are not supported in the long term
+2.4.1
+Using default random seed (system time).
+2021-03-28 07:25:59.196017: I tensorflow/compiler/jit/xla_cpu_device.cc:41] Not creating XLA devices, tf_xla_enable_xla_devices not set
+2021-03-28 07:25:59.197344: I tensorflow/stream_executor/platform/default/dso_loader.cc:49] Successfully opened dynamic library libcuda.so.1
+2021-03-28 07:25:59.208866: E tensorflow/stream_executor/cuda/cuda_driver.cc:328] failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected
+2021-03-28 07:25:59.208931: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:156] kernel driver does not appear to be running on this host (22f5c8d24a66): /proc/driver/nvidia/version does not exist
+2021-03-28 07:25:59.209712: I tensorflow/compiler/jit/xla_gpu_device.cc:99] Not creating XLA devices, tf_xla_enable_xla_devices not set
+WARNING:tensorflow:From mnist_tf.py:102: calling GlorotUniform.__init__ (from tensorflow.python.ops.init_ops) with dtype is deprecated and will be removed in a future version.
+Instructions for updating:
+Call initializer instance with the dtype argument instead of passing it to the constructor
+(?, 14, 14, 2)
+(?, 7, 7, 4)
+(?, 4, 4, 8)
+[4, 4, 1, 2]
+[4, 4, 2, 4]
+[4, 4, 4, 8]
+[128, 10]
+[10]
+<tf.Variable 'Variable:0' shape=(4, 4, 1, 2) dtype=float32_ref>
+<tf.Variable 'Variable_1:0' shape=(4, 4, 2, 4) dtype=float32_ref>
+<tf.Variable 'Variable_2:0' shape=(4, 4, 4, 8) dtype=float32_ref>
+<tf.Variable 'Variable_3:0' shape=(128, 10) dtype=float32_ref>
+<tf.Variable 'Variable_4:0' shape=(10,) dtype=float32_ref>
+sgd
+{'lr': 0.01, 'grad_agg': 'raw_grad'}
+2021-03-28 07:25:59.413921: I tensorflow/compiler/mlir/mlir_graph_optimization_pass.cc:196] None of the MLIR optimization passes are enabled (registered 0 passes)
+2021-03-28 07:25:59.421684: I tensorflow/core/platform/profile_utils/cpu_utils.cc:112] CPU Frequency: 2299995000 Hz
+START of epoch 1/100
+END of epoch 1/100
+ -> test loss = 2.303874e+00
+ -> acc. = 10.8%
+ -> elapsed time (opt.) = 0.0 s
+START of epoch 2/100
+END of epoch 2/100
+ -> test loss = 2.302681e+00
+ -> acc. = 11.6%
+ -> elapsed time (opt.) = 18.2 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.195 s
+ -> avg. time per batch (opt.) = 0.303 s
+START of epoch 3/100
+END of epoch 3/100
+ -> test loss = 2.302237e+00
+ -> acc. = 11.6%
+ -> elapsed time (opt.) = 36.6 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.308 s
+ -> avg. time per batch (opt.) = 0.305 s
+START of epoch 4/100
+END of epoch 4/100
+ -> test loss = 2.301906e+00
+ -> acc. = 11.5%
+ -> elapsed time (opt.) = 54.9 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.300 s
+ -> avg. time per batch (opt.) = 0.305 s
+START of epoch 5/100
+END of epoch 5/100
+ -> test loss = 2.301628e+00
+ -> acc. = 11.5%
+ -> elapsed time (opt.) = 73.1 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.281 s
+ -> avg. time per batch (opt.) = 0.305 s
+START of epoch 6/100
+END of epoch 6/100
+ -> test loss = 2.301374e+00
+ -> acc. = 11.6%
+ -> elapsed time (opt.) = 91.2 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.250 s
+ -> avg. time per batch (opt.) = 0.304 s
+START of epoch 7/100
+END of epoch 7/100
+ -> test loss = 2.301123e+00
+ -> acc. = 11.6%
+ -> elapsed time (opt.) = 109.4 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.240 s
+ -> avg. time per batch (opt.) = 0.304 s
+START of epoch 8/100
+END of epoch 8/100
+ -> test loss = 2.300836e+00
+ -> acc. = 11.7%
+ -> elapsed time (opt.) = 127.8 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.253 s
+ -> avg. time per batch (opt.) = 0.304 s
+START of epoch 9/100
+END of epoch 9/100
+ -> test loss = 2.300467e+00
+ -> acc. = 11.7%
+ -> elapsed time (opt.) = 145.9 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.243 s
+ -> avg. time per batch (opt.) = 0.304 s
+START of epoch 10/100
+END of epoch 10/100
+ -> test loss = 2.297974e+00
+ -> acc. = 10.4%
+ -> elapsed time (opt.) = 164.2 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.241 s
+ -> avg. time per batch (opt.) = 0.304 s
+START of epoch 11/100
+END of epoch 11/100
+ -> test loss = 2.293477e+00
+ -> acc. = 11.3%
+ -> elapsed time (opt.) = 182.4 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.237 s
+ -> avg. time per batch (opt.) = 0.304 s
+START of epoch 12/100
+END of epoch 12/100
+ -> test loss = 2.278580e+00
+ -> acc. = 15.1%
+ -> elapsed time (opt.) = 200.7 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.245 s
+ -> avg. time per batch (opt.) = 0.304 s
+START of epoch 13/100
+END of epoch 13/100
+ -> test loss = 2.197356e+00
+ -> acc. = 20.6%
+ -> elapsed time (opt.) = 219.0 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.248 s
+ -> avg. time per batch (opt.) = 0.304 s
+START of epoch 14/100
+END of epoch 14/100
+ -> test loss = 1.530188e+00
+ -> acc. = 49.4%
+ -> elapsed time (opt.) = 237.5 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.272 s
+ -> avg. time per batch (opt.) = 0.305 s
+START of epoch 15/100
+END of epoch 15/100
+ -> test loss = 1.123726e+00
+ -> acc. = 63.2%
+ -> elapsed time (opt.) = 256.5 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.322 s
+ -> avg. time per batch (opt.) = 0.305 s
+START of epoch 16/100
+END of epoch 16/100
+ -> test loss = 8.827950e-01
+ -> acc. = 71.7%
+ -> elapsed time (opt.) = 275.0 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.333 s
+ -> avg. time per batch (opt.) = 0.306 s
+START of epoch 17/100
+END of epoch 17/100
+ -> test loss = 7.421929e-01
+ -> acc. = 76.8%
+ -> elapsed time (opt.) = 293.4 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.336 s
+ -> avg. time per batch (opt.) = 0.306 s
+START of epoch 18/100
+END of epoch 18/100
+ -> test loss = 6.458275e-01
+ -> acc. = 79.8%
+ -> elapsed time (opt.) = 312.0 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.353 s
+ -> avg. time per batch (opt.) = 0.306 s
+START of epoch 19/100
+END of epoch 19/100
+ -> test loss = 5.741148e-01
+ -> acc. = 82.3%
+ -> elapsed time (opt.) = 330.8 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.377 s
+ -> avg. time per batch (opt.) = 0.306 s
+START of epoch 20/100
+END of epoch 20/100
+ -> test loss = 5.264637e-01
+ -> acc. = 83.7%
+ -> elapsed time (opt.) = 349.0 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.370 s
+ -> avg. time per batch (opt.) = 0.306 s
+START of epoch 21/100
+END of epoch 21/100
+ -> test loss = 4.798260e-01
+ -> acc. = 85.1%
+ -> elapsed time (opt.) = 367.3 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.363 s
+ -> avg. time per batch (opt.) = 0.306 s
+START of epoch 22/100
+END of epoch 22/100
+ -> test loss = 4.506418e-01
+ -> acc. = 86.1%
+ -> elapsed time (opt.) = 385.6 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.361 s
+ -> avg. time per batch (opt.) = 0.306 s
+START of epoch 23/100
+END of epoch 23/100
+ -> test loss = 4.251796e-01
+ -> acc. = 86.8%
+ -> elapsed time (opt.) = 404.0 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.362 s
+ -> avg. time per batch (opt.) = 0.306 s
+START of epoch 24/100
+END of epoch 24/100
+ -> test loss = 4.044893e-01
+ -> acc. = 87.7%
+ -> elapsed time (opt.) = 422.3 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.363 s
+ -> avg. time per batch (opt.) = 0.306 s
+START of epoch 25/100
+END of epoch 25/100
+ -> test loss = 3.965559e-01
+ -> acc. = 88.0%
+ -> elapsed time (opt.) = 440.8 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.367 s
+ -> avg. time per batch (opt.) = 0.306 s
+START of epoch 26/100
+END of epoch 26/100
+ -> test loss = 3.571331e-01
+ -> acc. = 89.0%
+ -> elapsed time (opt.) = 459.4 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.376 s
+ -> avg. time per batch (opt.) = 0.306 s
+START of epoch 27/100
+END of epoch 27/100
+ -> test loss = 3.468640e-01
+ -> acc. = 89.4%
+ -> elapsed time (opt.) = 477.8 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.377 s
+ -> avg. time per batch (opt.) = 0.306 s
+START of epoch 28/100
+END of epoch 28/100
+ -> test loss = 3.247516e-01
+ -> acc. = 90.0%
+ -> elapsed time (opt.) = 496.2 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.379 s
+ -> avg. time per batch (opt.) = 0.306 s
+START of epoch 29/100
+END of epoch 29/100
+ -> test loss = 3.142568e-01
+ -> acc. = 90.0%
+ -> elapsed time (opt.) = 514.7 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.381 s
+ -> avg. time per batch (opt.) = 0.306 s
+START of epoch 30/100
+END of epoch 30/100
+ -> test loss = 3.181478e-01
+ -> acc. = 90.5%
+ -> elapsed time (opt.) = 533.0 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.379 s
+ -> avg. time per batch (opt.) = 0.306 s
+START of epoch 31/100
+END of epoch 31/100
+ -> test loss = 2.877942e-01
+ -> acc. = 90.9%
+ -> elapsed time (opt.) = 551.4 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.380 s
+ -> avg. time per batch (opt.) = 0.306 s
+START of epoch 32/100
+END of epoch 32/100
+ -> test loss = 2.911750e-01
+ -> acc. = 91.0%
+ -> elapsed time (opt.) = 569.7 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.379 s
+ -> avg. time per batch (opt.) = 0.306 s
+START of epoch 33/100
+END of epoch 33/100
+ -> test loss = 2.701473e-01
+ -> acc. = 91.8%
+ -> elapsed time (opt.) = 588.1 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.378 s
+ -> avg. time per batch (opt.) = 0.306 s
+START of epoch 34/100
+END of epoch 34/100
+ -> test loss = 2.714589e-01
+ -> acc. = 91.7%
+ -> elapsed time (opt.) = 606.4 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.376 s
+ -> avg. time per batch (opt.) = 0.306 s
+START of epoch 35/100
+END of epoch 35/100
+ -> test loss = 2.546176e-01
+ -> acc. = 92.1%
+ -> elapsed time (opt.) = 624.8 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.375 s
+ -> avg. time per batch (opt.) = 0.306 s
+START of epoch 36/100
+END of epoch 36/100
+ -> test loss = 2.509504e-01
+ -> acc. = 92.4%
+ -> elapsed time (opt.) = 643.1 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.375 s
+ -> avg. time per batch (opt.) = 0.306 s
+START of epoch 37/100
+END of epoch 37/100
+ -> test loss = 2.434395e-01
+ -> acc. = 92.4%
+ -> elapsed time (opt.) = 661.7 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.380 s
+ -> avg. time per batch (opt.) = 0.306 s
+START of epoch 38/100
+END of epoch 38/100
+ -> test loss = 2.715024e-01
+ -> acc. = 91.6%
+ -> elapsed time (opt.) = 680.4 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.388 s
+ -> avg. time per batch (opt.) = 0.306 s
+START of epoch 39/100
+END of epoch 39/100
+ -> test loss = 2.290616e-01
+ -> acc. = 92.9%
+ -> elapsed time (opt.) = 698.8 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.391 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 40/100
+END of epoch 40/100
+ -> test loss = 2.249599e-01
+ -> acc. = 93.1%
+ -> elapsed time (opt.) = 717.4 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.394 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 41/100
+END of epoch 41/100
+ -> test loss = 2.311032e-01
+ -> acc. = 93.2%
+ -> elapsed time (opt.) = 735.9 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.396 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 42/100
+END of epoch 42/100
+ -> test loss = 2.209987e-01
+ -> acc. = 93.4%
+ -> elapsed time (opt.) = 754.3 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.398 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 43/100
+END of epoch 43/100
+ -> test loss = 2.227295e-01
+ -> acc. = 93.1%
+ -> elapsed time (opt.) = 772.7 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.399 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 44/100
+END of epoch 44/100
+ -> test loss = 2.278694e-01
+ -> acc. = 93.2%
+ -> elapsed time (opt.) = 791.1 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.398 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 45/100
+END of epoch 45/100
+ -> test loss = 2.216427e-01
+ -> acc. = 93.2%
+ -> elapsed time (opt.) = 809.5 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.398 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 46/100
+END of epoch 46/100
+ -> test loss = 2.182587e-01
+ -> acc. = 93.5%
+ -> elapsed time (opt.) = 828.0 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.401 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 47/100
+END of epoch 47/100
+ -> test loss = 2.030789e-01
+ -> acc. = 93.7%
+ -> elapsed time (opt.) = 846.7 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.406 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 48/100
+END of epoch 48/100
+ -> test loss = 1.990066e-01
+ -> acc. = 93.9%
+ -> elapsed time (opt.) = 865.3 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.410 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 49/100
+END of epoch 49/100
+ -> test loss = 1.974651e-01
+ -> acc. = 94.0%
+ -> elapsed time (opt.) = 883.8 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.413 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 50/100
+END of epoch 50/100
+ -> test loss = 1.958967e-01
+ -> acc. = 93.9%
+ -> elapsed time (opt.) = 902.2 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.413 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 51/100
+END of epoch 51/100
+ -> test loss = 1.911943e-01
+ -> acc. = 93.9%
+ -> elapsed time (opt.) = 920.8 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.416 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 52/100
+END of epoch 52/100
+ -> test loss = 1.920866e-01
+ -> acc. = 93.8%
+ -> elapsed time (opt.) = 939.2 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.416 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 53/100
+END of epoch 53/100
+ -> test loss = 1.843594e-01
+ -> acc. = 94.1%
+ -> elapsed time (opt.) = 957.6 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.416 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 54/100
+END of epoch 54/100
+ -> test loss = 1.956933e-01
+ -> acc. = 94.0%
+ -> elapsed time (opt.) = 976.0 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.416 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 55/100
+END of epoch 55/100
+ -> test loss = 1.872223e-01
+ -> acc. = 94.1%
+ -> elapsed time (opt.) = 994.5 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.417 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 56/100
+END of epoch 56/100
+ -> test loss = 1.815026e-01
+ -> acc. = 94.3%
+ -> elapsed time (opt.) = 1012.9 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.417 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 57/100
+END of epoch 57/100
+ -> test loss = 1.821455e-01
+ -> acc. = 94.2%
+ -> elapsed time (opt.) = 1031.4 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.418 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 58/100
+END of epoch 58/100
+ -> test loss = 1.773054e-01
+ -> acc. = 94.2%
+ -> elapsed time (opt.) = 1050.0 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.422 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 59/100
+END of epoch 59/100
+ -> test loss = 1.723457e-01
+ -> acc. = 94.5%
+ -> elapsed time (opt.) = 1068.9 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.429 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 60/100
+END of epoch 60/100
+ -> test loss = 1.703298e-01
+ -> acc. = 94.5%
+ -> elapsed time (opt.) = 1087.6 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.433 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 61/100
+END of epoch 61/100
+ -> test loss = 1.880825e-01
+ -> acc. = 94.1%
+ -> elapsed time (opt.) = 1106.2 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.437 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 62/100
+END of epoch 62/100
+ -> test loss = 1.773429e-01
+ -> acc. = 94.5%
+ -> elapsed time (opt.) = 1124.9 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.441 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 63/100
+END of epoch 63/100
+ -> test loss = 1.719223e-01
+ -> acc. = 94.7%
+ -> elapsed time (opt.) = 1143.6 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.444 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 64/100
+END of epoch 64/100
+ -> test loss = 1.681008e-01
+ -> acc. = 94.7%
+ -> elapsed time (opt.) = 1162.2 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.447 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 65/100
+END of epoch 65/100
+ -> test loss = 1.675873e-01
+ -> acc. = 94.7%
+ -> elapsed time (opt.) = 1180.6 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.448 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 66/100
+END of epoch 66/100
+ -> test loss = 1.627177e-01
+ -> acc. = 94.8%
+ -> elapsed time (opt.) = 1199.1 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.447 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 67/100
+END of epoch 67/100
+ -> test loss = 1.715741e-01
+ -> acc. = 94.7%
+ -> elapsed time (opt.) = 1217.5 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.447 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 68/100
+END of epoch 68/100
+ -> test loss = 1.630897e-01
+ -> acc. = 94.8%
+ -> elapsed time (opt.) = 1236.0 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.447 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 69/100
+END of epoch 69/100
+ -> test loss = 1.726759e-01
+ -> acc. = 94.5%
+ -> elapsed time (opt.) = 1254.5 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.448 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 70/100
+END of epoch 70/100
+ -> test loss = 1.551443e-01
+ -> acc. = 95.0%
+ -> elapsed time (opt.) = 1272.8 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.447 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 71/100
+END of epoch 71/100
+ -> test loss = 1.589560e-01
+ -> acc. = 95.0%
+ -> elapsed time (opt.) = 1291.2 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.445 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 72/100
+END of epoch 72/100
+ -> test loss = 1.603550e-01
+ -> acc. = 94.8%
+ -> elapsed time (opt.) = 1309.5 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.444 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 73/100
+END of epoch 73/100
+ -> test loss = 1.500416e-01
+ -> acc. = 95.2%
+ -> elapsed time (opt.) = 1327.8 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.442 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 74/100
+END of epoch 74/100
+ -> test loss = 1.531229e-01
+ -> acc. = 95.3%
+ -> elapsed time (opt.) = 1346.0 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.438 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 75/100
+END of epoch 75/100
+ -> test loss = 1.610857e-01
+ -> acc. = 95.1%
+ -> elapsed time (opt.) = 1364.3 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.436 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 76/100
+END of epoch 76/100
+ -> test loss = 1.499036e-01
+ -> acc. = 95.4%
+ -> elapsed time (opt.) = 1382.6 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.434 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 77/100
+END of epoch 77/100
+ -> test loss = 1.469968e-01
+ -> acc. = 95.4%
+ -> elapsed time (opt.) = 1400.9 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.433 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 78/100
+END of epoch 78/100
+ -> test loss = 1.493226e-01
+ -> acc. = 95.5%
+ -> elapsed time (opt.) = 1419.2 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.431 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 79/100
+END of epoch 79/100
+ -> test loss = 1.440423e-01
+ -> acc. = 95.5%
+ -> elapsed time (opt.) = 1437.5 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.430 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 80/100
+END of epoch 80/100
+ -> test loss = 1.436451e-01
+ -> acc. = 95.5%
+ -> elapsed time (opt.) = 1455.8 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.428 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 81/100
+END of epoch 81/100
+ -> test loss = 1.419350e-01
+ -> acc. = 95.6%
+ -> elapsed time (opt.) = 1474.2 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.427 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 82/100
+END of epoch 82/100
+ -> test loss = 1.477617e-01
+ -> acc. = 95.4%
+ -> elapsed time (opt.) = 1492.4 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.425 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 83/100
+END of epoch 83/100
+ -> test loss = 1.464567e-01
+ -> acc. = 95.6%
+ -> elapsed time (opt.) = 1510.7 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.423 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 84/100
+END of epoch 84/100
+ -> test loss = 1.416031e-01
+ -> acc. = 95.5%
+ -> elapsed time (opt.) = 1529.0 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.422 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 85/100
+END of epoch 85/100
+ -> test loss = 1.390052e-01
+ -> acc. = 95.6%
+ -> elapsed time (opt.) = 1547.3 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.420 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 86/100
+END of epoch 86/100
+ -> test loss = 1.421330e-01
+ -> acc. = 95.5%
+ -> elapsed time (opt.) = 1565.5 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.417 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 87/100
+END of epoch 87/100
+ -> test loss = 1.387251e-01
+ -> acc. = 95.7%
+ -> elapsed time (opt.) = 1583.9 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.417 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 88/100
+END of epoch 88/100
+ -> test loss = 1.377998e-01
+ -> acc. = 95.7%
+ -> elapsed time (opt.) = 1602.2 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.417 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 89/100
+END of epoch 89/100
+ -> test loss = 1.357120e-01
+ -> acc. = 95.6%
+ -> elapsed time (opt.) = 1620.6 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.416 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 90/100
+END of epoch 90/100
+ -> test loss = 1.409631e-01
+ -> acc. = 95.5%
+ -> elapsed time (opt.) = 1638.9 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.414 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 91/100
+END of epoch 91/100
+ -> test loss = 1.394823e-01
+ -> acc. = 95.6%
+ -> elapsed time (opt.) = 1657.2 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.413 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 92/100
+END of epoch 92/100
+ -> test loss = 1.347317e-01
+ -> acc. = 95.8%
+ -> elapsed time (opt.) = 1675.5 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.412 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 93/100
+END of epoch 93/100
+ -> test loss = 1.335603e-01
+ -> acc. = 95.8%
+ -> elapsed time (opt.) = 1694.0 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.413 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 94/100
+END of epoch 94/100
+ -> test loss = 1.556951e-01
+ -> acc. = 95.1%
+ -> elapsed time (opt.) = 1712.5 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.414 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 95/100
+END of epoch 95/100
+ -> test loss = 1.337449e-01
+ -> acc. = 95.7%
+ -> elapsed time (opt.) = 1730.8 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.413 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 96/100
+END of epoch 96/100
+ -> test loss = 1.346925e-01
+ -> acc. = 95.8%
+ -> elapsed time (opt.) = 1749.2 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.413 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 97/100
+END of epoch 97/100
+ -> test loss = 1.381112e-01
+ -> acc. = 95.5%
+ -> elapsed time (opt.) = 1767.6 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.412 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 98/100
+END of epoch 98/100
+ -> test loss = 1.329570e-01
+ -> acc. = 95.7%
+ -> elapsed time (opt.) = 1786.0 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.412 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 99/100
+END of epoch 99/100
+ -> test loss = 1.329031e-01
+ -> acc. = 95.9%
+ -> elapsed time (opt.) = 1804.3 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.411 s
+ -> avg. time per batch (opt.) = 0.307 s
+START of epoch 100/100
+END of epoch 100/100
+ -> test loss = 1.327275e-01
+ -> acc. = 95.7%
+ -> elapsed time (opt.) = 1822.6 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 18.410 s
+ -> avg. time per batch (opt.) = 0.307 s

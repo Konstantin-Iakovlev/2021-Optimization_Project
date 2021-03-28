@@ -1,0 +1,973 @@
+
+ SQN.ipynb_
+File
+Edit
+View
+Insert
+Runtime
+Tools
+Help
+Save failed
+Comment
+Share
+
+Files
+
+..
+sample_data
+sqgn
+Drop files to upload them to session storage
+Disk
+69.41 GB available
+Code
+Text
+RAM
+Disk
+Editing
+Stochastic Quasi Newton methods for Neural Networks
+
+[ ]
+123456
+import jax.numpy as jnpimport numpy as npfrom matplotlib import pyplot as pltfrom jax import jit, random, device_put, gradfrom functools import partial 
+
+[ ]
+123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100101102103104105106107108109110111112113114115116117118119120121122123124125126127128129130131132133134135136137138
+  class SQN_Optimizer:    def __init__(self):        self.M = 10        self.L = 10        self.N = 7000        self.n = 50        self.w1 = np.random.rand(self.n)        self.batch_grad_size = 50        self.batch_hess_size = 300        # Generate data        np.random.seed(1)        self.X = np.random.rand(self.N, self.n)        self.Y = np.random.rand(self.N)        # w^k        self.w_array = [self.w1.copy()]        # wt        self.wt_array = []        # learning rate        self.beta = 2        # EMA        self.mu = 1e-2        # correction pairs (sj, yj)        self.corr_pairs = []        # initialize real F(w1) = Q -- quality        self.Q_arr = [self.F_maker(np.arange(0, self.N))(self.w1)]        # precision of Q        self.eps = 1e-5     def f(self, w, S):        # print(type(S), S.shape, type(self.Y), self.Y.shape)        # print(np.exp(-self.X[S] @ w).shape)        # return (self.Y[S] - self.X[S] @ w) ** 2        # print('check: ', self.X[S] @ w)        return -self.Y[S] * np.log(1/(1 + np.exp(-self.X[S] @ w))) - \               (1-self.Y[S]) * np.log(1 - 1/(1+np.exp(-self.X[S] @ w))) +\               0.9 * np.linalg.norm(w) ** 2     def nabla_F(self, w, S):        res = np.zeros(w.shape)        for i in S:            res += -(1 / (1 + np.exp(-self.X[i] @ w)) - self.Y[i]) * self.X[i]        return res / self.batch_grad_size + 1.8 * w     def hess_F(self, w, S, s_arg):        res = np.zeros(w.shape)        for i in S:            # print('Xi w', self.X[i] @ w)            aux_hess = -1/(1 + np.exp(-self.X[i] @ w))*(1 - 1/(1 + np.exp(-self.X[i] @ w))) * (self.X[i] @ s_arg) * self.X[i]            res += aux_hess        return res / self.batch_hess_size + 1.8 * s_arg     def F_maker(self, S):        def F(w):            return (1 / S.shape[0]) * np.sum(self.f(w, S))        return F      def Ht(self, t):        st, yt = self.corr_pairs[-1]        H = (st @ yt) / (yt @ yt) * np.eye(st.shape[0])        # print(f'corr pairs len is {len(self.corr_pairs)}')        # print(f'min = {t, self.M, min(t, self.M)}')        I = np.eye(st.shape[0])        for sj, yj in self.corr_pairs[-min(t, self.M):]:            rhoj = 1 / (yj @ sj)            # BFGS formula            H = (I - rhoj*np.outer(sj, yj)) @ H @ (I - rhoj*np.outer(yj, sj)) + rhoj*np.outer(sj, sj)        # print('Ht', np.linalg.norm(H))        return H      def sqn_optimize(self):        # num of iterations        iter_num = int(5000)        t = -1        self.wt_array.append(np.zeros((self.w1.shape[0],)))        # print(self.wt_array[-1])        k = 1 # iteration counter        while k <= iter_num:            S = np.random.choice(self.N, size=self.batch_grad_size)            # dF = grad(self.F_maker(S))            self.wt_array[-1] += self.w_array[-1]            if k <= 2 * self.L:                # print('w_array', self.w_array[-1])                # print(f'k = {k}')                self.w_array.append(self.w_array[-1] - (self.beta / k) * self.nabla_F(self.w_array[-1], S))            else:                self.w_array.append(self.w_array[-1] -                            (self.beta/ k) * self.Ht(t) @ self.nabla_F(self.w_array[-1], S))                # print('w^k', self.w_array[-1])                # print('dF(wk)', self.nabla_F(self.w_array[-1], S))                # print(f'k = {k}')            if k % self.L == 0:                # print("% == 0")                t += 1                self.wt_array[-1] /= self.L                if t > 0:                    Sh = np.random.choice(self.N, size=self.batch_hess_size)                    # hessF = hessian(self.F_maker(Sh))                    st = self.wt_array[-1] - self.wt_array[-2]                    yt = self.hess_F(self.wt_array[-1], Sh, st)                    # print('wt = ', self.wt_array[-1])                    # print('yt = ', yt)                    self.corr_pairs.append((st, yt))                self.wt_array.append(np.zeros((self.w1.shape[0],)))             self.Q_arr.append(self.mu*self.F_maker(S)(self.w_array[-1]) + (1-self.mu)*self.Q_arr[-1])            if abs(self.Q_arr[-1] - self.Q_arr[-2]) < self.eps:                print(f'sqn iterations = {k}')                break            k += 1     def sgd_optimize(self):        iter_num = int(5000)        k = 1        while k <= iter_num:            S = random.choice(random.PRNGKey(np.random.randint(1)),self.N, shape=(self.batch_grad_size,))            self.w_array.append(self.w_array[-1] - (self.beta / k)*self.nabla_F(self.w_array[-1], S))            self.Q_arr.append(self.mu*self.F_maker(S)(self.w_array[-1]) + (1-self.mu)*self.Q_arr[-1])            if abs(self.Q_arr[-1] - self.Q_arr[-2]) < self.eps:                print(f'sgd_opt iter = {k}')                break            k += 1     def clear(self):        self.Q_arr = [self.F_maker(np.arange(0, self.N))(self.w1)]        self.wt_array = []        self.w_array = [self.w1]# TESTnp.random.seed(1)sqn_opt = SQN_Optimizer()sqn_opt.sqn_optimize()print("Ok")   
+
+sqn iterations = 656
+Ok
+[ ]
+123456789
+ plt.figure(figsize=(10, 8))plt.plot(np.log(sqn_opt.Q_arr))sqn_opt.clear()sqn_opt.sgd_optimize()plt.plot(np.log(sqn_opt.Q_arr))# print(np.array(sqn_opt.Q_arr))# print(np.array(sqn_opt.wt_array)) 
+
+
+[ ]
+123456789
+import torch a = torch.tensor([2., 3.], requires_grad=True)b = torch.tensor([6., 4.], requires_grad=True) Q = 3*a**3 - b**2external_grad = torch.tensor([1., 1.])Q.backward(gradient=external_grad)Q.grad
+
+
+[ ]
+12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970717273747576777879808182838485868788899091
+import torchfrom torch.optim import Optimizerimport torch.nn as nnimport numpy as np class SQN(Optimizer):    def __init__(self, papams, M=10, L=10, batch_grad_size=50, batch_hess_size=300, beta=2.0,                 mu=0.01, eps=1e-5):        if not isinstance(M, int) or M <= 0:            raise ValueError(f'Invalid M: {M} -- should be positive integer')        if not isinstance(L, int) or L <= 0:            raise ValueError(f'Invalid L: {L} -- should be positive integer')        if not isinstance(batch_grad_size, int) or batch_grad_size <= 0:            raise ValueError(f'Invalid batch_grad_size: {batch_grad_size} -- should be positive integer')        if not isinstance(batch_hess_size, int) or batch_hess_size <= 0:            raise ValueError(f'Invalid batch_hess_size: {batch_grad_size} -- should be positive integer')        if not beta > 0:            raise ValueError(f'Invalid beta: {batch_grad_size} -- should be positive float')        if not (0 < mu < 1):            raise ValueError(f'Invalid mu: {mu} -- should be float value from interval (0, 1)')        if not eps > 0:            raise ValueError(f'Invalid eps: {eps} -- should be positive float')        defaults = dict(M=M, L=L, batch_grad_size=batch_grad_size, batch_hess_size=batch_hess_size,                        beta=beta, mu=mu, eps=eps)        super().__init__(papams, defaults)        self.M = M        self.L = L        self.batch_grad_size = batch_grad_size        self.batch_hess_size = batch_hess_size        self.beta = beta        self.mu = mu        # correction pairs (sj, yj)        self.corr_pairs = []        # Quality        self.Q_arr = []        self.wt_array = []        self.w_array = []        # precision of Q        self.eps = 1e-5        # num of iteration        self.k = 1        # t        self.t = -1     def Ht(self, t):        st, yt = self.corr_pairs[-1]        H = (st @ yt) / (yt @ yt) * np.eye(st.shape[0])        I = np.eye(st.shape[0])        for sj, yj in self.corr_pairs[-min(t, self.M):]:            rhoj = 1 / (yj @ sj)            # BFGS formula            H = (I - rhoj*np.outer(sj, yj)) @ H @ (I - rhoj*np.outer(yj, sj)) + rhoj*np.outer(sj, sj)        return H     @torch.no_grad()    def step(self, closure=None):        """Performs a single optimization step.                Args:                    closure (callable, optional): A closure that reevaluates the model                        and returns the loss.        """        loss = None        if closure is not None:            with torch.enable_grad():                loss = closure()         for group in self.param_groups:            params_with_grad = []            d_p_list = []            hess_p_list = []            for p in group['params']:                if p.grad is not None:                    params_with_grad.append(p)                    d_p_list.append(p.grad)                if p.hess is not None:                    hess_p_list.append(p.hess)            print('params with grad', d_p_list)            print('params with hess', hess_p_list)          return loss def main():    a = torch.tensor([2., 3.], requires_grad=True)    b = torch.tensor([6., 4.], requires_grad=True)     Q = 3*a**3 - b**2    print(Q.backward()) if __name__ == 'main':    main()
+
+[ ]
+1
+! pip install stochqn
+
+Requirement already satisfied: stochqn in /usr/local/lib/python3.7/dist-packages (0.2.8.1)
+Requirement already satisfied: scipy in /usr/local/lib/python3.7/dist-packages (from stochqn) (1.4.1)
+Requirement already satisfied: cython in /usr/local/lib/python3.7/dist-packages (from stochqn) (0.29.22)
+Requirement already satisfied: scikit-learn in /usr/local/lib/python3.7/dist-packages (from stochqn) (0.22.2.post1)
+Requirement already satisfied: numpy in /usr/local/lib/python3.7/dist-packages (from stochqn) (1.19.5)
+Requirement already satisfied: findblas in /usr/local/lib/python3.7/dist-packages (from stochqn) (0.1.18)
+Requirement already satisfied: joblib>=0.11 in /usr/local/lib/python3.7/dist-packages (from scikit-learn->stochqn) (1.0.1)
+[ ]
+1
+pip install tensorflow==1.14
+
+Requirement already satisfied: tensorflow==1.14 in /usr/local/lib/python3.7/dist-packages (1.14.0)
+Requirement already satisfied: protobuf>=3.6.1 in /usr/local/lib/python3.7/dist-packages (from tensorflow==1.14) (3.12.4)
+Requirement already satisfied: grpcio>=1.8.6 in /usr/local/lib/python3.7/dist-packages (from tensorflow==1.14) (1.32.0)
+Requirement already satisfied: absl-py>=0.7.0 in /usr/local/lib/python3.7/dist-packages (from tensorflow==1.14) (0.10.0)
+Requirement already satisfied: wheel>=0.26 in /usr/local/lib/python3.7/dist-packages (from tensorflow==1.14) (0.36.2)
+Requirement already satisfied: keras-applications>=1.0.6 in /usr/local/lib/python3.7/dist-packages (from tensorflow==1.14) (1.0.8)
+Requirement already satisfied: keras-preprocessing>=1.0.5 in /usr/local/lib/python3.7/dist-packages (from tensorflow==1.14) (1.1.2)
+Requirement already satisfied: tensorboard<1.15.0,>=1.14.0 in /usr/local/lib/python3.7/dist-packages (from tensorflow==1.14) (1.14.0)
+Requirement already satisfied: tensorflow-estimator<1.15.0rc0,>=1.14.0rc0 in /usr/local/lib/python3.7/dist-packages (from tensorflow==1.14) (1.14.0)
+Requirement already satisfied: astor>=0.6.0 in /usr/local/lib/python3.7/dist-packages (from tensorflow==1.14) (0.8.1)
+Requirement already satisfied: google-pasta>=0.1.6 in /usr/local/lib/python3.7/dist-packages (from tensorflow==1.14) (0.2.0)
+Requirement already satisfied: termcolor>=1.1.0 in /usr/local/lib/python3.7/dist-packages (from tensorflow==1.14) (1.1.0)
+Requirement already satisfied: numpy<2.0,>=1.14.5 in /usr/local/lib/python3.7/dist-packages (from tensorflow==1.14) (1.19.5)
+Requirement already satisfied: gast>=0.2.0 in /usr/local/lib/python3.7/dist-packages (from tensorflow==1.14) (0.3.3)
+Requirement already satisfied: six>=1.10.0 in /usr/local/lib/python3.7/dist-packages (from tensorflow==1.14) (1.15.0)
+Requirement already satisfied: wrapt>=1.11.1 in /usr/local/lib/python3.7/dist-packages (from tensorflow==1.14) (1.12.1)
+Requirement already satisfied: setuptools in /usr/local/lib/python3.7/dist-packages (from protobuf>=3.6.1->tensorflow==1.14) (54.1.2)
+Requirement already satisfied: h5py in /usr/local/lib/python3.7/dist-packages (from keras-applications>=1.0.6->tensorflow==1.14) (2.10.0)
+Requirement already satisfied: markdown>=2.6.8 in /usr/local/lib/python3.7/dist-packages (from tensorboard<1.15.0,>=1.14.0->tensorflow==1.14) (3.3.4)
+Requirement already satisfied: werkzeug>=0.11.15 in /usr/local/lib/python3.7/dist-packages (from tensorboard<1.15.0,>=1.14.0->tensorflow==1.14) (1.0.1)
+Requirement already satisfied: importlib-metadata; python_version < "3.8" in /usr/local/lib/python3.7/dist-packages (from markdown>=2.6.8->tensorboard<1.15.0,>=1.14.0->tensorflow==1.14) (3.7.2)
+Requirement already satisfied: typing-extensions>=3.6.4; python_version < "3.8" in /usr/local/lib/python3.7/dist-packages (from importlib-metadata; python_version < "3.8"->markdown>=2.6.8->tensorboard<1.15.0,>=1.14.0->tensorflow==1.14) (3.7.4.3)
+Requirement already satisfied: zipp>=0.5 in /usr/local/lib/python3.7/dist-packages (from importlib-metadata; python_version < "3.8"->markdown>=2.6.8->tensorboard<1.15.0,>=1.14.0->tensorflow==1.14) (3.4.1)
+[ ]
+123456789101112131415161718192021222324252627282930
+import numpy as np, tensorflow as tffrom stochqn.tf import TensorflowStochQNOptimizerfrom sklearn.datasets import load_digits digits = load_digits()X = digits["data"]y = (digits["target"] == 3).astype('int64') ### picked one class at random np.random.seed(1)w0 = np.random.normal(size=(X.shape[1], 1)) ### logistic regression - note that there are better ways of doing it in tensorflowtf.reset_default_graph()weights = tf.Variable(w0, name='weights')input_X = tf.placeholder('float64', name='inpX')input_y = tf.placeholder('float64', name='inpY')predicted_y = tf.clip_by_value(1 / (1 + tf.exp(-tf.matmul(input_X, weights))), 1e-7, 1 - 1e-7)loss  = -tf.reduce_sum(input_y * tf.log(predicted_y) + (1 - input_y) * tf.log(1 - predicted_y))loss +=  tf.reduce_sum(weights ** 2) optimizer = TensorflowStochQNOptimizer(loss, optimizer='oLBFGS', step_size=1e-1)model = tf.global_variables_initializer()sess = tf.Session()sess.run(model)with sess:    for i in range(20):      optimizer.minimize(sess, feed_dict={input_X:X[i*85 : (i+1)*85], input_y:y[i*85 : (i+1)*85]})      print(optimizer)      wopt = weights.eval(session=sess)print('OK')
+
+<stochqn.tf.TensorflowStochQNOptimizer object at 0x7f8080695050>
+<stochqn.tf.TensorflowStochQNOptimizer object at 0x7f8080695050>
+<stochqn.tf.TensorflowStochQNOptimizer object at 0x7f8080695050>
+<stochqn.tf.TensorflowStochQNOptimizer object at 0x7f8080695050>
+<stochqn.tf.TensorflowStochQNOptimizer object at 0x7f8080695050>
+<stochqn.tf.TensorflowStochQNOptimizer object at 0x7f8080695050>
+<stochqn.tf.TensorflowStochQNOptimizer object at 0x7f8080695050>
+<stochqn.tf.TensorflowStochQNOptimizer object at 0x7f8080695050>
+<stochqn.tf.TensorflowStochQNOptimizer object at 0x7f8080695050>
+<stochqn.tf.TensorflowStochQNOptimizer object at 0x7f8080695050>
+<stochqn.tf.TensorflowStochQNOptimizer object at 0x7f8080695050>
+<stochqn.tf.TensorflowStochQNOptimizer object at 0x7f8080695050>
+<stochqn.tf.TensorflowStochQNOptimizer object at 0x7f8080695050>
+<stochqn.tf.TensorflowStochQNOptimizer object at 0x7f8080695050>
+<stochqn.tf.TensorflowStochQNOptimizer object at 0x7f8080695050>
+<stochqn.tf.TensorflowStochQNOptimizer object at 0x7f8080695050>
+<stochqn.tf.TensorflowStochQNOptimizer object at 0x7f8080695050>
+<stochqn.tf.TensorflowStochQNOptimizer object at 0x7f8080695050>
+<stochqn.tf.TensorflowStochQNOptimizer object at 0x7f8080695050>
+<stochqn.tf.TensorflowStochQNOptimizer object at 0x7f8080695050>
+OK
+[ ]
+123456789101112131415161718192021222324252627282930313233343536373839404142434445
+import tensorflow as tf from tensorflow.keras import datasets, layers, modelsimport matplotlib.pyplot as plt  (train_images, train_labels), (test_images, test_labels) = datasets.cifar10.load_data() # Normalize pixel values to be between 0 and 1train_images, test_images = train_images / 255.0, test_images / 255.0 class_names = ['airplane', 'automobile', 'bird', 'cat', 'deer',               'dog', 'frog', 'horse', 'ship', 'truck'] plt.figure(figsize=(10,10))for i in range(25):    plt.subplot(5,5,i+1)    plt.xticks([])    plt.yticks([])    plt.grid(False)    plt.imshow(train_images[i], cmap=plt.cm.binary)    # The CIFAR labels happen to be arrays,    # which is why you need the extra index    plt.xlabel(class_names[train_labels[i][0]])plt.show() model = models.Sequential()model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(32, 32, 3)))model.add(layers.MaxPooling2D((2, 2)))model.add(layers.Conv2D(64, (3, 3), activation='relu'))model.add(layers.MaxPooling2D((2, 2)))model.add(layers.Conv2D(64, (3, 3), activation='relu')) model.add(layers.Flatten())model.add(layers.Dense(64, activation='relu'))model.add(layers.Dense(10)) model.summary() model.compile(optimizer='adam',              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),              metrics=['accuracy']) history = model.fit(train_images, train_labels, epochs=1,                    validation_data=(test_images, test_labels))
+
+
+[ ]
+1
+ 
+
+[1]
+123
+! git clone https://github.com/cthl/sqgn% cd sqgn/mnist_tf! python mnist_tf.py -opt_name sqn
+
+Cloning into 'sqgn'...
+remote: Enumerating objects: 62, done.
+remote: Counting objects: 100% (62/62), done.
+remote: Compressing objects: 100% (42/42), done.
+remote: Total 62 (delta 27), reused 42 (delta 17), pack-reused 0
+Unpacking objects: 100% (62/62), done.
+[3]
+1
+ 
+
+[Errno 2] No such file or directory: 'sqgn/mnist_tf'
+/content/sqgn/mnist_tf
+2021-03-27 17:03:51.243393: I tensorflow/stream_executor/platform/default/dso_loader.cc:49] Successfully opened dynamic library libcudart.so.11.0
+WARNING:tensorflow:From /usr/local/lib/python3.7/dist-packages/tensorflow/python/compat/v2_compat.py:96: disable_resource_variables (from tensorflow.python.ops.variable_scope) is deprecated and will be removed in a future version.
+Instructions for updating:
+non-resource variables are not supported in the long term
+2.4.1
+Using default random seed (system time).
+2021-03-27 17:03:53.924452: I tensorflow/compiler/jit/xla_cpu_device.cc:41] Not creating XLA devices, tf_xla_enable_xla_devices not set
+2021-03-27 17:03:53.954625: I tensorflow/stream_executor/platform/default/dso_loader.cc:49] Successfully opened dynamic library libcuda.so.1
+2021-03-27 17:03:54.053547: E tensorflow/stream_executor/cuda/cuda_driver.cc:328] failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected
+2021-03-27 17:03:54.053617: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:156] kernel driver does not appear to be running on this host (5542491c3994): /proc/driver/nvidia/version does not exist
+2021-03-27 17:03:54.054268: I tensorflow/compiler/jit/xla_gpu_device.cc:99] Not creating XLA devices, tf_xla_enable_xla_devices not set
+WARNING:tensorflow:From mnist_tf.py:102: calling GlorotUniform.__init__ (from tensorflow.python.ops.init_ops) with dtype is deprecated and will be removed in a future version.
+Instructions for updating:
+Call initializer instance with the dtype argument instead of passing it to the constructor
+(?, 14, 14, 2)
+(?, 7, 7, 4)
+(?, 4, 4, 8)
+[4, 4, 1, 2]
+[4, 4, 2, 4]
+[4, 4, 4, 8]
+[128, 10]
+[10]
+<tf.Variable 'Variable:0' shape=(4, 4, 1, 2) dtype=float32_ref>
+<tf.Variable 'Variable_1:0' shape=(4, 4, 2, 4) dtype=float32_ref>
+<tf.Variable 'Variable_2:0' shape=(4, 4, 4, 8) dtype=float32_ref>
+<tf.Variable 'Variable_3:0' shape=(128, 10) dtype=float32_ref>
+<tf.Variable 'Variable_4:0' shape=(10,) dtype=float32_ref>
+sqn
+{'lr': 0.01, 'eps': 1e-07, 'hist': 20, 'reg': 0.1, 'gauss_newton': True, 'num_samples': 1000, 'pred': <tf.Tensor 'add:0' shape=(?, 10) dtype=float32>, 'grad_agg': 'raw_grad', 'update_interval': 1}
+2021-03-27 17:03:58.791656: I tensorflow/compiler/mlir/mlir_graph_optimization_pass.cc:196] None of the MLIR optimization passes are enabled (registered 0 passes)
+2021-03-27 17:03:58.900975: I tensorflow/core/platform/profile_utils/cpu_utils.cc:112] CPU Frequency: 2299995000 Hz
+START of epoch 1/100
+END of epoch 1/100
+ -> test loss = 2.670298e+00
+ -> acc. = 20.2%
+ -> elapsed time (opt.) = 0.0 s
+START of epoch 2/100
+END of epoch 2/100
+ -> test loss = 1.483125e+00
+ -> acc. = 51.8%
+ -> elapsed time (opt.) = 44.6 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.605 s
+ -> avg. time per batch (opt.) = 0.743 s
+START of epoch 3/100
+END of epoch 3/100
+ -> test loss = 1.039762e+00
+ -> acc. = 70.2%
+ -> elapsed time (opt.) = 88.8 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.411 s
+ -> avg. time per batch (opt.) = 0.740 s
+START of epoch 4/100
+END of epoch 4/100
+ -> test loss = 7.916731e-01
+ -> acc. = 78.0%
+ -> elapsed time (opt.) = 133.2 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.387 s
+ -> avg. time per batch (opt.) = 0.740 s
+START of epoch 5/100
+END of epoch 5/100
+ -> test loss = 6.291087e-01
+ -> acc. = 82.0%
+ -> elapsed time (opt.) = 177.8 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.438 s
+ -> avg. time per batch (opt.) = 0.741 s
+START of epoch 6/100
+END of epoch 6/100
+ -> test loss = 5.147769e-01
+ -> acc. = 84.8%
+ -> elapsed time (opt.) = 222.3 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.458 s
+ -> avg. time per batch (opt.) = 0.741 s
+START of epoch 7/100
+END of epoch 7/100
+ -> test loss = 4.301968e-01
+ -> acc. = 87.1%
+ -> elapsed time (opt.) = 266.6 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.430 s
+ -> avg. time per batch (opt.) = 0.741 s
+START of epoch 8/100
+END of epoch 8/100
+ -> test loss = 3.656528e-01
+ -> acc. = 88.9%
+ -> elapsed time (opt.) = 311.2 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.456 s
+ -> avg. time per batch (opt.) = 0.741 s
+START of epoch 9/100
+END of epoch 9/100
+ -> test loss = 3.158060e-01
+ -> acc. = 90.4%
+ -> elapsed time (opt.) = 355.9 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.485 s
+ -> avg. time per batch (opt.) = 0.741 s
+START of epoch 10/100
+END of epoch 10/100
+ -> test loss = 2.771193e-01
+ -> acc. = 91.5%
+ -> elapsed time (opt.) = 400.3 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.475 s
+ -> avg. time per batch (opt.) = 0.741 s
+START of epoch 11/100
+END of epoch 11/100
+ -> test loss = 2.471166e-01
+ -> acc. = 92.3%
+ -> elapsed time (opt.) = 445.1 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.512 s
+ -> avg. time per batch (opt.) = 0.742 s
+START of epoch 12/100
+END of epoch 12/100
+ -> test loss = 2.244150e-01
+ -> acc. = 93.1%
+ -> elapsed time (opt.) = 489.6 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.510 s
+ -> avg. time per batch (opt.) = 0.742 s
+START of epoch 13/100
+END of epoch 13/100
+ -> test loss = 2.059905e-01
+ -> acc. = 93.6%
+ -> elapsed time (opt.) = 534.5 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.543 s
+ -> avg. time per batch (opt.) = 0.742 s
+START of epoch 14/100
+END of epoch 14/100
+ -> test loss = 1.910157e-01
+ -> acc. = 94.3%
+ -> elapsed time (opt.) = 579.2 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.557 s
+ -> avg. time per batch (opt.) = 0.743 s
+START of epoch 15/100
+END of epoch 15/100
+ -> test loss = 1.790497e-01
+ -> acc. = 94.7%
+ -> elapsed time (opt.) = 624.1 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.575 s
+ -> avg. time per batch (opt.) = 0.743 s
+START of epoch 16/100
+END of epoch 16/100
+ -> test loss = 1.695606e-01
+ -> acc. = 95.0%
+ -> elapsed time (opt.) = 668.7 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.581 s
+ -> avg. time per batch (opt.) = 0.743 s
+START of epoch 17/100
+END of epoch 17/100
+ -> test loss = 1.619516e-01
+ -> acc. = 95.3%
+ -> elapsed time (opt.) = 713.4 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.590 s
+ -> avg. time per batch (opt.) = 0.743 s
+START of epoch 18/100
+END of epoch 18/100
+ -> test loss = 1.553154e-01
+ -> acc. = 95.3%
+ -> elapsed time (opt.) = 757.9 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.585 s
+ -> avg. time per batch (opt.) = 0.743 s
+START of epoch 19/100
+END of epoch 19/100
+ -> test loss = 1.494863e-01
+ -> acc. = 95.5%
+ -> elapsed time (opt.) = 802.8 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.598 s
+ -> avg. time per batch (opt.) = 0.743 s
+START of epoch 20/100
+END of epoch 20/100
+ -> test loss = 1.446290e-01
+ -> acc. = 95.6%
+ -> elapsed time (opt.) = 847.7 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.615 s
+ -> avg. time per batch (opt.) = 0.744 s
+START of epoch 21/100
+END of epoch 21/100
+ -> test loss = 1.403198e-01
+ -> acc. = 95.7%
+ -> elapsed time (opt.) = 892.6 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.628 s
+ -> avg. time per batch (opt.) = 0.744 s
+START of epoch 22/100
+END of epoch 22/100
+ -> test loss = 1.369257e-01
+ -> acc. = 95.9%
+ -> elapsed time (opt.) = 937.5 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.642 s
+ -> avg. time per batch (opt.) = 0.744 s
+START of epoch 23/100
+END of epoch 23/100
+ -> test loss = 1.340043e-01
+ -> acc. = 96.0%
+ -> elapsed time (opt.) = 982.6 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.662 s
+ -> avg. time per batch (opt.) = 0.744 s
+START of epoch 24/100
+END of epoch 24/100
+ -> test loss = 1.313174e-01
+ -> acc. = 96.1%
+ -> elapsed time (opt.) = 1027.5 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.672 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 25/100
+END of epoch 25/100
+ -> test loss = 1.289360e-01
+ -> acc. = 96.2%
+ -> elapsed time (opt.) = 1072.3 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.678 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 26/100
+END of epoch 26/100
+ -> test loss = 1.267961e-01
+ -> acc. = 96.3%
+ -> elapsed time (opt.) = 1117.0 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.678 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 27/100
+END of epoch 27/100
+ -> test loss = 1.248500e-01
+ -> acc. = 96.3%
+ -> elapsed time (opt.) = 1161.6 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.678 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 28/100
+END of epoch 28/100
+ -> test loss = 1.228863e-01
+ -> acc. = 96.3%
+ -> elapsed time (opt.) = 1206.3 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.679 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 29/100
+END of epoch 29/100
+ -> test loss = 1.211681e-01
+ -> acc. = 96.4%
+ -> elapsed time (opt.) = 1251.3 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.688 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 30/100
+END of epoch 30/100
+ -> test loss = 1.195792e-01
+ -> acc. = 96.4%
+ -> elapsed time (opt.) = 1295.9 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.685 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 31/100
+END of epoch 31/100
+ -> test loss = 1.181307e-01
+ -> acc. = 96.4%
+ -> elapsed time (opt.) = 1340.4 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.681 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 32/100
+END of epoch 32/100
+ -> test loss = 1.168900e-01
+ -> acc. = 96.5%
+ -> elapsed time (opt.) = 1384.9 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.675 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 33/100
+END of epoch 33/100
+ -> test loss = 1.159703e-01
+ -> acc. = 96.5%
+ -> elapsed time (opt.) = 1429.7 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.679 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 34/100
+END of epoch 34/100
+ -> test loss = 1.149792e-01
+ -> acc. = 96.5%
+ -> elapsed time (opt.) = 1474.1 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.671 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 35/100
+END of epoch 35/100
+ -> test loss = 1.141997e-01
+ -> acc. = 96.6%
+ -> elapsed time (opt.) = 1518.9 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.673 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 36/100
+END of epoch 36/100
+ -> test loss = 1.135119e-01
+ -> acc. = 96.6%
+ -> elapsed time (opt.) = 1563.4 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.669 s
+ -> avg. time per batch (opt.) = 0.744 s
+START of epoch 37/100
+END of epoch 37/100
+ -> test loss = 1.127883e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 1608.1 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.671 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 38/100
+END of epoch 38/100
+ -> test loss = 1.120800e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 1652.6 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.665 s
+ -> avg. time per batch (opt.) = 0.744 s
+START of epoch 39/100
+END of epoch 39/100
+ -> test loss = 1.114691e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 1697.2 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.662 s
+ -> avg. time per batch (opt.) = 0.744 s
+START of epoch 40/100
+END of epoch 40/100
+ -> test loss = 1.108835e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 1742.1 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.668 s
+ -> avg. time per batch (opt.) = 0.744 s
+START of epoch 41/100
+END of epoch 41/100
+ -> test loss = 1.104036e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 1787.2 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.681 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 42/100
+END of epoch 42/100
+ -> test loss = 1.099441e-01
+ -> acc. = 96.6%
+ -> elapsed time (opt.) = 1832.2 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.687 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 43/100
+END of epoch 43/100
+ -> test loss = 1.094357e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 1876.9 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.688 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 44/100
+END of epoch 44/100
+ -> test loss = 1.090054e-01
+ -> acc. = 96.6%
+ -> elapsed time (opt.) = 1921.4 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.684 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 45/100
+END of epoch 45/100
+ -> test loss = 1.084341e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 1966.0 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.682 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 46/100
+END of epoch 46/100
+ -> test loss = 1.079529e-01
+ -> acc. = 96.6%
+ -> elapsed time (opt.) = 2010.8 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.685 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 47/100
+END of epoch 47/100
+ -> test loss = 1.075604e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 2055.7 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.689 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 48/100
+END of epoch 48/100
+ -> test loss = 1.071041e-01
+ -> acc. = 96.6%
+ -> elapsed time (opt.) = 2100.5 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.691 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 49/100
+END of epoch 49/100
+ -> test loss = 1.066528e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 2144.8 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.684 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 50/100
+END of epoch 50/100
+ -> test loss = 1.063699e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 2189.3 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.681 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 51/100
+END of epoch 51/100
+ -> test loss = 1.058993e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 2234.0 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.679 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 52/100
+END of epoch 52/100
+ -> test loss = 1.055053e-01
+ -> acc. = 96.8%
+ -> elapsed time (opt.) = 2278.9 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.685 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 53/100
+END of epoch 53/100
+ -> test loss = 1.053235e-01
+ -> acc. = 96.8%
+ -> elapsed time (opt.) = 2323.8 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.688 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 54/100
+END of epoch 54/100
+ -> test loss = 1.052317e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 2368.1 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.681 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 55/100
+END of epoch 55/100
+ -> test loss = 1.051559e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 2413.3 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.690 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 56/100
+END of epoch 56/100
+ -> test loss = 1.050805e-01
+ -> acc. = 96.8%
+ -> elapsed time (opt.) = 2458.1 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.692 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 57/100
+END of epoch 57/100
+ -> test loss = 1.050823e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 2503.0 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.697 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 58/100
+END of epoch 58/100
+ -> test loss = 1.051416e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 2547.7 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.697 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 59/100
+END of epoch 59/100
+ -> test loss = 1.052051e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 2592.3 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.694 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 60/100
+END of epoch 60/100
+ -> test loss = 1.051906e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 2637.2 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.698 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 61/100
+END of epoch 61/100
+ -> test loss = 1.052170e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 2682.1 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.701 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 62/100
+END of epoch 62/100
+ -> test loss = 1.052248e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 2727.6 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.714 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 63/100
+END of epoch 63/100
+ -> test loss = 1.052830e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 2772.7 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.721 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 64/100
+END of epoch 64/100
+ -> test loss = 1.052319e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 2817.4 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.721 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 65/100
+END of epoch 65/100
+ -> test loss = 1.052536e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 2862.0 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.719 s
+ -> avg. time per batch (opt.) = 0.745 s
+START of epoch 66/100
+END of epoch 66/100
+ -> test loss = 1.052597e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 2908.6 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.747 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 67/100
+END of epoch 67/100
+ -> test loss = 1.053759e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 2953.6 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.751 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 68/100
+END of epoch 68/100
+ -> test loss = 1.054502e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 2998.7 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.756 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 69/100
+END of epoch 69/100
+ -> test loss = 1.054521e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 3043.8 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.762 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 70/100
+END of epoch 70/100
+ -> test loss = 1.054720e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 3088.4 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.759 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 71/100
+END of epoch 71/100
+ -> test loss = 1.054721e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 3132.6 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.752 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 72/100
+END of epoch 72/100
+ -> test loss = 1.054935e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 3177.1 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.748 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 73/100
+END of epoch 73/100
+ -> test loss = 1.054167e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 3222.2 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.753 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 74/100
+END of epoch 74/100
+ -> test loss = 1.054001e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 3267.2 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.756 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 75/100
+END of epoch 75/100
+ -> test loss = 1.054303e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 3312.1 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.758 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 76/100
+END of epoch 76/100
+ -> test loss = 1.054086e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 3356.7 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.756 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 77/100
+END of epoch 77/100
+ -> test loss = 1.053240e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 3401.3 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.754 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 78/100
+END of epoch 78/100
+ -> test loss = 1.052967e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 3445.9 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.752 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 79/100
+END of epoch 79/100
+ -> test loss = 1.052813e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 3490.7 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.752 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 80/100
+END of epoch 80/100
+ -> test loss = 1.052643e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 3535.6 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.754 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 81/100
+END of epoch 81/100
+ -> test loss = 1.052850e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 3580.4 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.755 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 82/100
+END of epoch 82/100
+ -> test loss = 1.052529e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 3625.2 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.755 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 83/100
+END of epoch 83/100
+ -> test loss = 1.052130e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 3669.9 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.755 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 84/100
+END of epoch 84/100
+ -> test loss = 1.052119e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 3714.7 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.755 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 85/100
+END of epoch 85/100
+ -> test loss = 1.051976e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 3759.3 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.754 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 86/100
+END of epoch 86/100
+ -> test loss = 1.052456e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 3804.2 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.755 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 87/100
+END of epoch 87/100
+ -> test loss = 1.052619e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 3849.1 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.757 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 88/100
+END of epoch 88/100
+ -> test loss = 1.052296e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 3893.7 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.756 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 89/100
+END of epoch 89/100
+ -> test loss = 1.052512e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 3938.3 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.754 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 90/100
+END of epoch 90/100
+ -> test loss = 1.052302e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 3983.6 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.759 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 91/100
+END of epoch 91/100
+ -> test loss = 1.051688e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 4028.3 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.759 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 92/100
+END of epoch 92/100
+ -> test loss = 1.051251e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 4073.3 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.761 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 93/100
+END of epoch 93/100
+ -> test loss = 1.050932e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 4118.5 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.767 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 94/100
+END of epoch 94/100
+ -> test loss = 1.051552e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 4163.4 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.767 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 95/100
+END of epoch 95/100
+ -> test loss = 1.051020e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 4208.1 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.768 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 96/100
+END of epoch 96/100
+ -> test loss = 1.051523e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 4252.6 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.764 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 97/100
+END of epoch 97/100
+ -> test loss = 1.051527e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 4297.5 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.766 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 98/100
+END of epoch 98/100
+ -> test loss = 1.051792e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 4342.1 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.764 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 99/100
+END of epoch 99/100
+ -> test loss = 1.052384e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 4386.9 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.764 s
+ -> avg. time per batch (opt.) = 0.746 s
+START of epoch 100/100
+END of epoch 100/100
+ -> test loss = 1.052294e-01
+ -> acc. = 96.7%
+ -> elapsed time (opt.) = 4431.4 s
+ -> avg. time per epoch (svrg) = 0.000 s
+ -> avg. time per epoch (opt.) = 44.762 s
+ -> avg. time per batch (opt.) = 0.746 s
+
+error
+1m 13s
+completed at 8:06 PM
+line, hint
