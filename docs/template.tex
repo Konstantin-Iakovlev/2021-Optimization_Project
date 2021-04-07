@@ -42,6 +42,15 @@
 \usepackage{graphics}
 
 
+
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+
+\usepackage{multirow}
+
+
 % we are running pdflatex, so convert .eps files to .pdf
 %\usepackage[pdftex]{graphicx}
 %\usepackage{epstopdf}
@@ -150,7 +159,25 @@ The project considers a stochastic quasi-Newtonian method. This project draws he
 \medskip
 \hrule\medskip
 \Head{Problem statement}\\
-Problem statement from \cite{journals/siamjo/ByrdHNS16}. I'll try to compress it.
+%Problem statement from \cite{journals/siamjo/ByrdHNS16}. I'll try to compress it.
+Let us give some function $f(w, \xi)$, where $w\in \reals^n, ~\xi$ is a random vector $(x, z)$. You can look at the pair $(x, z)$ as an object and an answer, respectively. Usually in machine learning, the function $f(w, \xi)$ has the form:
+$$f(w, \xi) = \ell(h(w; x_i); z_i),$$
+where $\ell$ is a non-negative loss function, $h$ is a model parameterized by the vector $w$, $\{x_i, z_i\}_{i=1}^N$ is a training sample. We define the empirical risk as:
+$$F(w) = \frac{1}{N}\sum_{i=1}^Nf(w; x_i, z_i)$$
+
+We formulate the optimization problem as follows:
+$$\min_{w\in \reals^n}F(w)$$
+
+One can give an estimate of the gradient and the hessian:
+\begin{equation}
+\label{risk_approx}
+\widehat{\nabla}F(w) = \frac{1}{b}\sum_{i\in \mathcal{S}}\nabla f(w; x_i, z_i)
+\end{equation}
+\begin{equation}
+\label{hess_risk_approx}
+\widehat{\nabla}^2F(w) = \frac{1}{b_H}\sum_{i\in\mathcal{S}_H}\nabla^2f(w; x_i, z_i)
+\end{equation}
+
 %One approach is the \emph{group lasso}:
 %\[
 %\begin{array}{ll}
@@ -165,7 +192,16 @@ Problem statement from \cite{journals/siamjo/ByrdHNS16}. I'll try to compress it
 \medskip
 \hrule\medskip
 \Head{Stochastic quasi-Newton method}\\
-Description from \cite{journals/siamjo/ByrdHNS16}.
+%Description from \cite{journals/siamjo/ByrdHNS16}.
+Let the optimization method have the following form:
+\begin{equation}
+\label{qn:iteration}
+w^{k + 1} = w^k - \alpha^kH_k\widehat{\nabla}F(w^k)
+\end{equation}
+We introduce the following notation:
+
+$$s_t = \overline{w} _t- \overline{w}_{t-1}, ~ \overline{w}_t = \sum_{i = k-L}^kw^i$$
+$$y_t = \widehat{\nabla}^2F(\overline{w}_t)s_t$$
 %Another approach is the \emph{structured group lasso}:
 %\[
 %\begin{array}{ll}
@@ -183,11 +219,60 @@ Description from \cite{journals/siamjo/ByrdHNS16}.
 %r(x) = \|(\|x_{g_1}\|_{p_1}, \dots, \|x_{g_N}\|_{p_N})\|_{p_0}
 %\]
 %\end{itemize}
+\end{textblock}
 
-\medskip
+\begin{textblock}{7.0}(8,1.5)
 \hrule\medskip
 \Head{Algorithm}\\
-Two algorithms from \cite{journals/siamjo/ByrdHNS16}
+The algorithms is described in the project proposal.
+%\begin{algorithm}[!h]
+%		\caption{Stochastic Quasi-Newton Method (SQN)}	
+%SQN
+%	\begin{algorithmic}[1]
+%	\label{SQN}
+%		\REQUIRE initial parameters $w^1$; positive integers $M, L$; step-length sequence $\{\alpha_k\}$
+%		\STATE Set $t = -1$
+%		\STATE Set $\overline{w}_t = 0$		
+%		\FOR {$k=1,2,...,$}
+%		\STATE Choose a sample $\mathcal S \subset\{1, \ldots, N\}$
+%		\STATE Calculate $\widehat{\nabla}F(w^k)$ as defined in \ref{risk_approx}
+%		\STATE $\overline{w}_t = \overline{w}_t + w^k$
+%		\IF {$k\leq 2L$}
+%			\STATE $w^{k+1} = w^k - \alpha_k \widehat{\nabla}F(w^k)$
+%		\ELSE 
+%			\STATE $w^{k+1} = w^k - \alpha_kH_t\widehat{\nabla}F(w^k)$, $H_t$ is defined by \ref{hess_updating}
+%		\ENDIF
+%		
+%		\IF {$k ~\%~ L = 0$}
+%			\STATE $t = t+1$
+%			\STATE $\overline{w}_t = \overline{w}_t / L$
+%			\IF {$t > 0$}
+%				\STATE Choose a sample $\mathcal{S}_H \subset \{1,\ldots,N\}$, to define $\widehat{\nabla}^2F(\overline{w}_t)$ by \ref{hess_risk_approx}
+%				 \STATE Compute $s_t = \overline{w}_t - \overline{w}_{t-1}, ~y_t = \widehat{\nabla}^2F(\overline{w}_t)(\overline{w}_t - \overline{w}_{t-1})$ \label{st_yt}
+%			\ENDIF
+%			\STATE $\overline{w}_t = 0$
+%		\ENDIF
+%		\ENDFOR
+%	\end{algorithmic}
+%%\end{algorithm}
+%
+%%\begin{algorithm}[H]
+%%	\caption{Обновление Гессиана}
+%Hessian updating
+%	\begin{algorithmic}[1]
+%		\label{hess_updating}
+%	\REQUIRE Updating counter $t$, memory parameter $M$ , and correction pairs $(s_j, y_j)$,\\$j = t - \min(t, M) + 1, \ldots, t$
+%	\ENSURE $H_t$
+%	\STATE Initialize $H = (s_t^\top y_t)/(y_t^\top y_t)I$, where $s_t, y_t$ are computed in Step \ref{st_yt} of \ref{SQN}
+%	\FOR {$j = t - \min(t, M) + 1, \ldots, t$}
+%		\STATE $\rho_j = 1/y_j^\top s_j$
+%		\STATE Apply BFGS formula: $H_t = (I - \rho_js_jy_j^\top)H(I - \rho_jy_js_j^\top) + \rho_js_js_j^\top$
+%	\ENDFOR
+%	\RETURN $H_t$
+%	\end{algorithmic}
+%%\end{algorithm}
+
+
 %\begin{center}
 %\begin{tikzpicture}
 %[dot/.style={rectangle,draw=black,fill=white,inner sep=5pt,minimum size=5pt}]
@@ -215,12 +300,15 @@ Two algorithms from \cite{journals/siamjo/ByrdHNS16}
 %    \end{itemize}
 %\end{itemize}
 
-\end{textblock}
 
-\begin{textblock}{7.0}(8,1.5)
 \hrule\medskip
 \Head{Convergence}\\
-Theorem from \cite{journals/siamjo/ByrdHNS16}
+%Theorem from \cite{journals/siamjo/ByrdHNS16}
+Suppose that $F(w)$ is twice continuously differentiable. There exist positive constants $\lambda$ and $\Lambda$ such that, for all $w\in \reals^n \hookrightarrow \lambda I \prec \nabla^2F(w)\prec \Lambda$. There is a constant $\gamma$ such that, for all $w\in \reals^n \hookrightarrow E_\xi[\|\nabla f(w^k, \xi)\|_2]^2 \leq \gamma^2$. For convenience, we define $\alpha^k = \frac{\beta}{k}$. Let $w^k$ be the iterates generated by the Newton-like method \ref{qn:iteration}. Where for all $k$ made:
+$$\mu_1I\prec H_k \prec \mu_2I, ~0 < \mu_1 \leq \mu_2, ~\beta > (2\mu_1\lambda)^{-1}$$
+Then, for all $k\geq 1$
+$$E[F(w^k) - F(w_*)] \leq \frac{Q(\beta)}{k}, ~ Q(\beta) = \max\left(\frac{\Lambda\mu_2^2\beta^2\gamma^2}{2(2\mu_1\lambda\beta - 1)}, F(w^1) - F(w_*)\right)$$
+
 %We solve this problem using an ADMM lasso implementation:
 %\begin{verbatim}
 %prox_f = @(v,rho) (rho/(1 + rho))*(v - b) + b;
@@ -241,10 +329,13 @@ Theorem from \cite{journals/siamjo/ByrdHNS16}
 %end
 %\end{verbatim}
 
-\medskip
 \hrule\medskip
 \Head{Basic experiment}\\
-Logistic regression: dataset description, results + plot(from colab).
+Here we considered the classification problem, but also the logistic regression. Two optimizers were compared: oLBFGS \cite{journals/jmlr/SchraudolphYG07} and SQN \cite{journals/siamjo/ByrdHNS16} on a digits dataset from sklearn library.
+
+\begin{center}
+\includegraphics[width=0.9\textwidth]{basic_exp.eps}
+\end{center}
 %If $L$ is not known (usually the case), can use the following line search:
 %
 %\noindent\rule[-5pt]{.8\textwidth}{0.4pt}
@@ -266,15 +357,18 @@ Logistic regression: dataset description, results + plot(from colab).
 %(1/2\lambda)\|x - y\|_2^2
 %\]
 
-\medskip
-\hrule\medskip
-\Head{Main experiment}\\
-Dataset description + neural network description + parameters of SGD and SQGN.
-%Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
 \end{textblock}
 
 \begin{textblock}{7.0}(16,1.5)
+\hrule\medskip
+\Head{Main experiment}\\
+Here we compared two optimizers: SQGN \cite{journals/corr/abs-2004-03040} and SGD. We considered a TensorFlow-based neural network on the MNIST dataset.
+
+\begin{center}
+\includegraphics[width=0.9\textwidth]{main_exp.eps}
+\end{center}
+%Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
 
 %\hrule\medskip
 %\Head{Numerical example}\\
@@ -289,20 +383,24 @@ Dataset description + neural network description + parameters of SGD and SQGN.
 \medskip
 \hrule\medskip
 \Head{Results}\\
-Results of the nain experiments: plot + table of metrics(execution time, loss value depending on the epoch. For example, 30, 50, 70, 100).
-
-%\begin{center}
-%\psfrag{k}[t][b]{$k$}
-%\psfrag{fbest - fmin}[b][t]{$f_\mathrm{best}^{(k)} - f^\star$}
-%\psfrag{noise-free realize}{noise-free case}
-%\psfrag{realize1}{realization 1}
-%\psfrag{realize2}{realization 2}
-%\includegraphics[width=0.9\textwidth]{figures/pwl_error_fbest_realize.eps}
-%\end{center}
+\begin{table}[H]
+\caption{Result of the main experiment.}
+\centering
+	\begin{tabular}{ |c|c|c|c|c|c| }
+	\hline
+	 \multirow{2}{*}{Model} & \multicolumn{4}{c|}{Accuracy, \%} & \multirow{2}{*}{Avg. time/epoch., sec}  \\ \cline{2-5}
+	 		& epoch 30 & epoch 50 & ep 70 & ep 100& \\
+	 \hline
+ 	SQN &96.4 & 96.7 & 96.7 & 96.7 & 44.8  \\ 
+ 	SGD &90.5 & 93.9 & 95.0 & 95.7& 18.4 \\ 
+ 	\hline
+\end{tabular}
+\end{table}
 
 \medskip
 \hrule\medskip
 \Head{Conclusion}\\
+Our numerical results suggest that SQN converges faster than oLBFGS and SGD. By experimenting with neural networks, we demonstrated that SQN applicable for large-scale optimization problems.
 
 %\medskip
 %\hrule\medskip
