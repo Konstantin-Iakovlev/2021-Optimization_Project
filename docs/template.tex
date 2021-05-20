@@ -154,7 +154,7 @@ Konstantin Yakovlev
 
 \hrule\medskip
 \Head{Introduction}\\
-The project considers a stochastic quasi-Newtonian method. This project draws heavily on the work of \cite{journals/siamjo/ByrdHNS16}. The algorithm given here uses the classical BFGS update formula in its bounded form. It is also efficient, robust, scalable, and has promising prospects in machine learning. In this paper, we propose to implement the above algorithm and compare it with the SGD algorithm on the example of logistic regression. In addition, we will compare two optimizers of a neural network -- SQGN \cite{journals/corr/abs-2004-03040} and SGD.
+The project considers a stochastic quasi-Newtonian method. This project draws heavily on the work of \cite{journals/siamjo/ByrdHNS16}. The algorithm given here uses the classical BFGS update formula in its bounded form. It is also efficient, robust, scalable, and has promising prospects in machine learning. In this project, we propose to implement the above algorithm and compare it with the oBFGS \cite{journals/jmlr/SchraudolphYG07} algorithm on the example of logistic regression. In addition, we will compare two optimizers of a neural network -- SQGN \cite{journals/corr/abs-2004-03040} and SGD.
 
 \medskip
 \hrule\medskip
@@ -200,8 +200,12 @@ w^{k + 1} = w^k - \alpha^kH_k\widehat{\nabla}F(w^k)
 \end{equation}
 We introduce the following notation:
 
-$$s_t = \overline{w} _t- \overline{w}_{t-1}, ~ \overline{w}_t = \sum_{i = k-L}^kw^i$$
-$$y_t = \widehat{\nabla}^2F(\overline{w}_t)s_t$$
+$$s_t = \overline{w} _t- \overline{w}_{t-1}, \quad \overline{w}_t = \sum_{i = k-L}^kw^i, \quad y_t = \widehat{\nabla}^2F(\overline{w}_t)s_t$$
+
+Let us define the $H_k$ update:
+
+$$H_{k+1} = (I -\rho_ks_ky_k^\top)H_k(I - \rho_ky_ks_k^\top) + \rho_ks_ks_k^\top, \quad \rho_k = \frac{1}{y_k^\top s_k}$$
+
 %Another approach is the \emph{structured group lasso}:
 %\[
 %\begin{array}{ll}
@@ -222,9 +226,15 @@ $$y_t = \widehat{\nabla}^2F(\overline{w}_t)s_t$$
 \end{textblock}
 
 \begin{textblock}{7.0}(8,1.5)
-\hrule\medskip
-\Head{Algorithm}\\
-The algorithms is described in the project proposal.
+
+Vectors $s_t$ and $y_t$ are calculated every $L$ iterations, where $L$ is a positive integer.
+
+In addition, updating the weights on the iteration number $k \leq 2L$ has the following form:
+
+$$w^{k+1} = w^k - \alpha_k\widehat{\nabla}F(w^k)$$
+%\hrule\medskip
+%\Head{Algorithm}\\
+%The algorithms is described in the project proposal.
 %\begin{algorithm}[!h]
 %		\caption{Stochastic Quasi-Newton Method (SQN)}	
 %SQN
@@ -391,8 +401,8 @@ Here we compared two optimizers: SQGN \cite{journals/corr/abs-2004-03040} and SG
 	 \multirow{2}{*}{Model} & \multicolumn{4}{c|}{Accuracy, \%} & \multirow{2}{*}{Avg. time/epoch., sec}  \\ \cline{2-5}
 	 		& epoch 30 & epoch 50 & ep 70 & ep 100& \\
 	 \hline
- 	SQN &96.4 & 96.7 & 96.7 & 96.7 & 44.8  \\ 
- 	SGD &90.5 & 93.9 & 95.0 & 95.7& 18.4 \\ 
+ 	SQN &95.8 & 96.2 & 96.2& 96.2 & 20.3  \\ 
+ 	SGD &91.5 & 95.1 & 96.0 & 96.6& 9.4 \\ 
  	\hline
 \end{tabular}
 \end{table}
@@ -409,7 +419,8 @@ Our numerical results suggest that SQN converges faster than oLBFGS and SGD. By 
 %X Fellowship and my mom.
 
 \bibliographystyle{unsrt}
-\bibliography{biblio}
+\bibliography{poster_biblio}
+\nocite{*}
 
 \end{textblock}
 
